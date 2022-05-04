@@ -12,6 +12,8 @@ namespace TicketDataService.DataSource
 	public class ContactDataSource
 	{
 		private static ContactDataSource instance = null;
+		private static Dictionary<Guid, Contact> contactDict = null;
+
 		public static ContactDataSource Instance
 		{
 			get
@@ -28,13 +30,36 @@ namespace TicketDataService.DataSource
 		{
 			get
 			{
-				
-				var json = File.ReadAllText(System.Web.Hosting.HostingEnvironment.MapPath(HttpContext.Current.Request.ApplicationPath) + "\\contacts.txt");
+				if (contactDict == null)
+                {
+					contactDict = new Dictionary<Guid, Contact>();
+					var json = File.ReadAllText(System.Web.Hosting.HostingEnvironment.MapPath(HttpContext.Current.Request.ApplicationPath) + "\\contacts.txt");
+					var deserialized = JsonConvert.DeserializeObject<Contact[]>(json);
+					foreach (Contact c in deserialized)
+                    {
+						contactDict.Add(c.ContactID, c);
+                    }
+				}
 
-				return JsonConvert.DeserializeObject<Contact[]>(json).AsQueryable();
+				return contactDict.Select(x => x.Value).AsQueryable();
 
 			}
 		}
+
+		public void InsertContact(Contact c)
+        {
+			contactDict.Add(c.ContactID, c);
+        }
+
+		public void DeleteContact(Contact c)
+        {
+			contactDict.Remove(c.ContactID);
+        }
+
+		public Contact GetContact(Guid id)
+        {
+			return contactDict[id];
+        }
 	}
 
 	internal class Contacts

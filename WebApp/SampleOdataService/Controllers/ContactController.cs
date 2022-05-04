@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
 using System.Web.OData;
@@ -23,5 +24,18 @@ namespace TicketDataService.Controllers
 			IQueryable<Contact> result = ContactDataSource.Instance.Contacts.AsQueryable().Where(p => p.ContactID == key);
 			return SingleResult.Create(result);
 		}
-	}
+
+		public async Task<IHttpActionResult> Post(Contact contact)
+		{
+            ContactDataSource.Instance.InsertContact(contact);
+            return Created(contact);
+		}
+
+        public async Task<IHttpActionResult> Patch([FromODataUri] Guid key, Delta<Contact> contact)
+        {
+            Contact c = ContactDataSource.Instance.GetContact(key);
+            contact.Patch(c);
+            return Updated(c);
+        }
+    }
 }
